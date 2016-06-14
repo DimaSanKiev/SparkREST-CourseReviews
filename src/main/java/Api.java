@@ -30,8 +30,6 @@ public class Api {
             return course;
         }, gson::toJson);
 
-        after((req, res) -> {
-            res.type("application/json");
-        });
+        after((req, res) -> res.type("application/json"));
     }
 }
