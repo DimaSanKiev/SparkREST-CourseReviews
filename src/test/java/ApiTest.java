@@ -1,6 +1,8 @@
 import com.google.gson.Gson;
 import dao.Sql2oCourseDao;
+import dao.Sql2oReviewDao;
 import model.Course;
+import model.Review;
 import org.junit.*;
 import org.sql2o.Connection;
 import org.sql2o.Sql2o;
@@ -15,12 +17,13 @@ import static org.junit.Assert.assertEquals;
 
 public class ApiTest {
 
-    public static final String PORT = "4567";
-    public static final String TEST_DATASOURCE = "h2:mem:testing";
+    private static final String PORT = "4567";
+    private static final String TEST_DATASOURCE = "h2:mem:testing";
     private Connection conn;
     private ApiClient client;
     private Gson gson;
     private Sql2oCourseDao courseDao;
+    private Sql2oReviewDao reviewDao;
 
     @BeforeClass
     public static void startServer() {
@@ -37,6 +40,7 @@ public class ApiTest {
     public void setUp() throws Exception {
         Sql2o sql2o = new Sql2o(TEST_DATASOURCE + ";INIT=RUNSCRIPT from 'classpath:db/init.sql'", "", "");
         courseDao = new Sql2oCourseDao(sql2o);
+        reviewDao = new Sql2oReviewDao(sql2o);
         conn = sql2o.open();
         client = new ApiClient("http://localhost:" + PORT);
         gson = new Gson();
@@ -88,6 +92,32 @@ public class ApiTest {
                 gson.toJson(values));
 
         assertEquals(201, res.getStatus());
+    }
+
+    @Test
+    public void addingReviewToUnknownCourseThrowsError() throws Exception {
+        Map<String, Object> values = new HashMap<>();
+        values.put("rating", 10);
+        values.put("comment", "Test comment");
+
+        ApiResponse res = client.request("POST",
+                "/courses/42/reviews", gson.toJson(values));
+
+        assertEquals(500, res.getStatus());
+    }
+
+    @Test
+    public void multipleReviewsReturnedForCourse() throws Exception {
+        Course course = newTestCourse();
+        courseDao.add(course);
+        reviewDao.add(new Review(course.getId(), 5, "Test comment 5"));
+        reviewDao.add(new Review(course.getId(), 10, "Test comment 10"));
+
+        ApiResponse res = client.request("GET",
+                String.format("/courses/%d/reviews", course.getId()));
+        Review[] reviews = gson.fromJson(res.getBody(), Review[].class);
+
+        assertEquals(2, reviews.length);
     }
 
     private Course newTestCourse() {
