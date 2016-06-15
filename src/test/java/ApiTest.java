@@ -11,7 +11,7 @@ import testing.ApiResponse;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class ApiTest {
 
@@ -73,6 +73,21 @@ public class ApiTest {
     public void missingCoursesReturnNotFoundStatus() throws Exception {
         ApiResponse res = client.request("GET", "/courses/42");
         assertEquals(404, res.getStatus());
+    }
+
+    @Test
+    public void addingReviewGivesCreatedStatus() throws Exception {
+        Course course = newTestCourse();
+        courseDao.add(course);
+        Map<String, Object> values = new HashMap<>();
+        values.put("rating", 10);
+        values.put("comment", "Test comment");
+
+        ApiResponse res = client.request("POST",
+                String.format("/courses/%d/reviews", course.getId()),
+                gson.toJson(values));
+
+        assertEquals(201, res.getStatus());
     }
 
     private Course newTestCourse() {
