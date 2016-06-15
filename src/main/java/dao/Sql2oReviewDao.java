@@ -8,11 +8,11 @@ import org.sql2o.Sql2oException;
 
 import java.util.List;
 
-public class Sql2oReivewDao implements ReviewDao {
+public class Sql2oReviewDao implements ReviewDao {
 
     private final Sql2o sql2o;
 
-    public Sql2oReivewDao(Sql2o sql2o) {
+    public Sql2oReviewDao(Sql2o sql2o) {
         this.sql2o = sql2o;
     }
 
@@ -42,6 +42,7 @@ public class Sql2oReivewDao implements ReviewDao {
     public List<Review> findByCourseId(int courseId) {
         try (Connection conn = sql2o.open()) {
             return conn.createQuery("SELECT * FROM reviews WHERE course_id = :courseId")
+                    .addColumnMapping("COURSE_ID", "courseId")
                     .addParameter("courseId", courseId)
                     .executeAndFetch(Review.class);
         }
