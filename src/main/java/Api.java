@@ -1,8 +1,12 @@
 import com.google.gson.Gson;
 import dao.CourseDao;
 import dao.Sql2oCourseDao;
+import exc.ApiError;
 import model.Course;
 import org.sql2o.Sql2o;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static spark.Spark.*;
 
@@ -32,10 +36,22 @@ public class Api {
 
         get("/courses/:id", "application/json", (req, res) -> {
             int id = Integer.parseInt(req.params("id"));
-            // TODO - What if this is not found?
             Course course = courseDao.findById(id);
+            if (course == null) {
+                throw new ApiError(404, "Couldn't find course with id " + id);
+            }
             return course;
         }, gson::toJson);
+
+        exception(ApiError.class, (exc, req, res) -> {
+            ApiError err = (ApiError) exc;
+            Map<String, Object> jsonMap = new HashMap<>();
+            jsonMap.put("status", err.getStatus());
+            jsonMap.put("errorMessage", err.getMessage());
+            res.type("application/json");
+            res.status(err.getStatus());
+            res.body(gson.toJson(jsonMap));
+        });
 
         after((req, res) -> res.type("application/json"));
     }
