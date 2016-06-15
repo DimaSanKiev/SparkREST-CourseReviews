@@ -69,6 +69,12 @@ public class ApiTest {
         assertEquals(course, retrieved);
     }
 
+    @Test
+    public void missingCoursesReturnNotFoundStatus() throws Exception {
+        ApiResponse res = client.request("GET", "/courses/42");
+        assertEquals(404, res.getStatus());
+    }
+
     private Course newTestCourse() {
         return new Course("Test", "http://test.com");
     }

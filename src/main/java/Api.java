@@ -17,7 +17,7 @@ public class Api {
             port(Integer.parseInt(args[0]));
             datasource = args[1];
         }
-        Sql2o sql2o = new Sql2o(String.format("%s;INIT=RUNSCRIPT from 'classpath:db.init.sql'", datasource), "", "");
+        Sql2o sql2o = new Sql2o(String.format("%s;INIT=RUNSCRIPT from 'classpath:db/init.sql'", datasource), "", "");
         CourseDao courseDao = new Sql2oCourseDao(sql2o);
         Gson gson = new Gson();
 
